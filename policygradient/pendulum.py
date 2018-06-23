@@ -1,5 +1,5 @@
 import gym
-from policygradient.advanced_actor_critic import Actor, Critic
+from policygradient.advantages_actor_critic import Actor, Critic
 
 env = gym.make('Pendulum-v0')
 env.reset()

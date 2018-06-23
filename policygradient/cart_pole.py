@@ -2,7 +2,7 @@ import gym
 import numpy as np
 from keras.utils import to_categorical
 
-from policygradient.advanced_actor_critic import Actor, Critic, Memory
+from policygradient.advantages_actor_critic import Actor, Critic, Memory
 
 env = gym.make('CartPole-v0')
 # env = env.unwrapped
