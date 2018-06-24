@@ -1,16 +1,17 @@
 import gym
+import tensorflow as tf
 from keras.utils import to_categorical
-from ac.advantages_actor_critic import Actor, Critic, Memory
+from ac.tensorflow.advantages_actor_critic import Actor, Critic
 
 env = gym.make('CartPole-v0')
 
 n_freatures = env.observation_space.shape[0]
 n_actions = env.action_space.n
 max_episode = 99999
+sess = tf.Session()
 
-actor = Actor(n_features=n_freatures, lr=0.001, n_actions=n_actions)
-critic = Critic(n_features=n_freatures, lr=0.001)
-memory = Memory()
+actor = Actor(n_features=n_freatures, lr=0.005, n_actions=n_actions, sess=sess)
+critic = Critic(n_features=n_freatures, lr=0.005)
 
 for e in range(max_episode):
     obs = env.reset()
@@ -22,7 +23,7 @@ for e in range(max_episode):
         a = actor.choose_action(obs)
         obs_, r, done, info = env.step(a)
         if done:
-            r = -100 # 关于done时r的设计，参见下面注释。
+            r = -10 # 关于done时r的设计，参见下面注释。
         total_reward += r
         td = r + 0.9 * critic.eval(obs_)
         '''
@@ -42,5 +43,5 @@ for e in range(max_episode):
         obs = obs_
         if done:
             print('[episode]:', e, ' [rewards]: ', total_reward)
-            print('pos:', pos, ' neg:', neg)
+            # print('pos:', pos, ' neg:', neg)
             break
