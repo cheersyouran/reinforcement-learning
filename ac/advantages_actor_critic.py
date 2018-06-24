@@ -4,7 +4,10 @@ from keras.optimizers import sgd
 import numpy as np
 import pandas as pd
 from keras import backend as K
-np.random.seed(0)
+
+'''
+Actor Critic中的A2C算法，引入Advantages函数
+'''
 
 class Actor:
     def __init__(self, n_features, n_actions, lr):
