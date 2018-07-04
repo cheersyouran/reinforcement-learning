@@ -74,35 +74,3 @@ class Memory:
 
         return s, r, a, s_
 
-class Actor_tf():
-
-    def __init__(self, n_features, n_actions, lr, sess):
-        self.n_features = n_features
-        self.n_actions = n_actions
-        self.lr = lr
-        self.sess = sess
-        self.model = None
-
-        K.set_session(sess)
-
-        a = Input(shape=(self.n_features,))
-        b = Dense(20, activation='relu')(a)
-        d = Dense(self.n_actions, activation='softmax')(b)
-        self.model = Model(inputs=a, outputs=d)
-
-        grads = tf.gradients(d, self.model.weights)
-        self.q = tf.placeholder(tf.float32, [None, n_actions])
-        self.train_op = tf.train.AdamOptimizer(0.001).apply_gradients(zip(grads, self.model.weights))
-        self.sess.run(tf.initialize_all_variables())
-
-    def learn(self, s, q):
-        self.sess.run(self.optimize, feed_dict={
-            self.state: s,
-            self.q: q
-        })
-
-    def choose_action(self, s):
-        s = s[np.newaxis, :]
-        actions = self.model.predict(s)
-        choice = np.random.choice(self.n_actions, p=actions.flatten())
-        return choice
