@@ -1,7 +1,6 @@
 from keras.models import Model
-from keras.layers import Input, Dense, Add
+from keras.layers import Input, Dense, Add, Dropout
 from keras.optimizers import sgd
-import tensorflow as tf
 import numpy as np
 import pandas as pd
 from keras import backend as K
@@ -19,13 +18,15 @@ class Actor:
         self.model = None
 
         a = Input(shape=(self.n_features,))
-        b = Dense(20, activation='relu')(a)
-        d = Dense(self.n_actions, activation='softmax')(b)
+        b = Dense(20, activation='relu', kernel_initializer='random_uniform')(a)
+        d = Dense(self.n_actions, activation='softmax', kernel_initializer='random_uniform')(b)
         self.model = Model(inputs=a, outputs=d)
 
         def mycrossentropy(y_true, y_pred):
             return - K.log(y_pred) * y_true
-        self.model.compile(loss=mycrossentropy, optimizer=sgd(lr=self.lr), metrics=['mse', 'accuracy'])
+
+        # self.model.compile(loss=mycrossentropy, optimizer=sgd(lr=self.lr), metrics=['mse', 'accuracy'])
+        self.model.compile(loss='categorical_crossentropy', optimizer=sgd(lr=self.lr), metrics=['mse', 'accuracy'])
 
     def learn(self, s, q):
         s = s[np.newaxis, :]
@@ -56,21 +57,21 @@ class Critic:
         s = s[np.newaxis, :]
         return self.model.predict(s)
 
-class Memory:
-    def __init__(self):
-        self.memory = pd.DataFrame(columns=['s', 'a', 'r', 's_'])
-
-    def store_transition(self, s, a, r, s_):
-        self.memory = self.memory.append({'s': s, 'a': a, 'r': r, 's_': s_}, ignore_index=True)
-
-    def sample(self, n):
-        indices = np.random.choice(self.memory.shape[0], n)
-        samples = self.memory.iloc[indices, :]
-
-        s = np.vstack(samples['s'])
-        r = np.vstack(samples['r'])
-        a = np.vstack(samples['a'])
-        s_ = np.vstack(samples['s_'])
-
-        return s, r, a, s_
+# class Memory:
+#     def __init__(self):
+#         self.memory = pd.DataFrame(columns=['s', 'a', 'r', 's_'])
+#
+#     def store_transition(self, s, a, r, s_):
+#         self.memory = self.memory.append({'s': s, 'a': a, 'r': r, 's_': s_}, ignore_index=True)
+#
+#     def sample(self, n):
+#         indices = np.random.choice(self.memory.shape[0], n)
+#         samples = self.memory.iloc[indices, :]
+#
+#         s = np.vstack(samples['s'])
+#         r = np.vstack(samples['r'])
+#         a = np.vstack(samples['a'])
+#         s_ = np.vstack(samples['s_'])
+#
+#         return s, r, a, s_
 

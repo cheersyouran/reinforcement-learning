@@ -1,7 +1,7 @@
 import gym
 from keras.utils import to_categorical
 
-from ac.keras.advantages_actor_critic import Actor, Critic, Memory
+from ac.keras.breakout.advantages_actor_critic import Actor, Critic
 
 env = gym.make('CartPole-v0')
 
@@ -11,7 +11,6 @@ max_episode = 99999
 
 actor = Actor(n_features=n_freatures, lr=0.005, n_actions=n_actions)
 critic = Critic(n_features=n_freatures, lr=0.005)
-memory = Memory()
 
 for e in range(max_episode):
     obs = env.reset()
@@ -38,7 +37,7 @@ for e in range(max_episode):
         else:
             neg += 1
 
-        actor.learn(obs,  to_categorical(a, num_classes=2) * (td - critic.eval(obs)))
+        actor.learn(obs,  to_categorical(a, num_classes=n_actions) * (td - critic.eval(obs)))
         critic.learn(obs, td)
         obs = obs_
         if done:
