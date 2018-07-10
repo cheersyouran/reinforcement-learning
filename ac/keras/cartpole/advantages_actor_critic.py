@@ -22,9 +22,8 @@ class Actor:
         d = Dense(self.n_actions, activation='softmax', kernel_initializer='random_uniform')(b)
         self.model = Model(inputs=a, outputs=d)
 
-        def mycrossentropy(y_true, y_pred):
-            return - K.log(y_pred) * y_true
-
+        # def mycrossentropy(y_true, y_pred):
+        #     return - K.log(y_pred) * y_true
         # self.model.compile(loss=mycrossentropy, optimizer=sgd(lr=self.lr), metrics=['mse', 'accuracy'])
         self.model.compile(loss='categorical_crossentropy', optimizer=sgd(lr=self.lr), metrics=['mse', 'accuracy'])
 
@@ -56,22 +55,3 @@ class Critic:
     def eval(self, s):
         s = s[np.newaxis, :]
         return self.model.predict(s)
-
-# class Memory:
-#     def __init__(self):
-#         self.memory = pd.DataFrame(columns=['s', 'a', 'r', 's_'])
-#
-#     def store_transition(self, s, a, r, s_):
-#         self.memory = self.memory.append({'s': s, 'a': a, 'r': r, 's_': s_}, ignore_index=True)
-#
-#     def sample(self, n):
-#         indices = np.random.choice(self.memory.shape[0], n)
-#         samples = self.memory.iloc[indices, :]
-#
-#         s = np.vstack(samples['s'])
-#         r = np.vstack(samples['r'])
-#         a = np.vstack(samples['a'])
-#         s_ = np.vstack(samples['s_'])
-#
-#         return s, r, a, s_
-

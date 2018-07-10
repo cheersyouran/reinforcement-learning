@@ -1,9 +1,9 @@
 import gym
 from keras.utils import to_categorical
 
-from ac.keras.breakout.advantages_actor_critic import Actor, Critic
+from ac.keras.cartpole.advantages_actor_critic import Actor, Critic
 
-env = gym.make('CartPole-v0')
+env = gym.make('CartPole-v1')
 
 n_freatures = env.observation_space.shape[0]
 n_actions = env.action_space.n
@@ -24,7 +24,7 @@ for e in range(max_episode):
         if done:
             r = -10 # 关于done时r的设计，参见下面注释。
         total_reward += r
-        td = r + 0.9 * critic.eval(obs_)
+        td = r + 0.95 * critic.eval(obs_)
         '''
         更新actor时
           若td_error恒>=0，则所有更新会增加pi_(s,a)的选择概率，只是不同的a增加的幅度不同;
