@@ -1,5 +1,5 @@
 from keras.models import Model
-from keras.layers import Input, Dense, Dropout
+from keras.layers import Input, Dense, Dropout, Activation
 from keras.optimizers import sgd
 import numpy as np
 import pandas as pd
@@ -17,19 +17,18 @@ class Actor:
         self.update_steps = 500
         self.step_counter = 1
 
-        a = Input(shape=(self.n_features,))
-        b = Dense(128, activation='relu', kernel_initializer='random_uniform')(a)
-        c = Dropout(0.5)(b)
-        d = Dense(64, activation='relu', kernel_initializer='random_uniform')(c)
-        e = Dropout(0.5)(d)
-        f = Dense(32, activation='relu', kernel_initializer='random_uniform')(e)
-        g = Dropout(0.5)(f)
-        h = Dense(16, activation='relu', kernel_initializer='random_uniform')(g)
-        j = Dropout(0.5)(h)
-        o = Dense(self.n_actions, activation='softmax', kernel_initializer='random_uniform')(j)
+        i = Input(shape=(self.n_features,))
+        h1 = Dense(128, activation='relu', kernel_initializer='random_uniform')(i)
+        a1 = Activation('relu')(h1)
+        h2 = Dense(64, activation='relu', kernel_initializer='random_uniform')(a1)
+        a2 = Activation('relu')(h2)
+        h3 = Dense(32, activation='relu', kernel_initializer='random_uniform')(a2)
+        a4 = Activation('relu')(h3)
+        h4 = Dense(16, activation='relu', kernel_initializer='random_uniform')(a4)
+        o = Dense(self.n_actions, activation='softmax', kernel_initializer='random_uniform')(h4)
 
-        self.eval_model = Model(inputs=a, outputs=o)
-        self.target_model = Model(inputs=a, outputs=o)
+        self.eval_model = Model(inputs=i, outputs=o)
+        self.target_model = Model(inputs=i, outputs=o)
         self.eval_model.compile(loss='categorical_crossentropy', optimizer=sgd(lr=self.lr), metrics=['mse', 'accuracy'])
 
     def learn(self, s, q):
@@ -65,19 +64,18 @@ class Critic:
         self.update_steps = 500
         self.step_counter = 1
 
-        a = Input(shape=(self.n_features,))
-        b = Dense(128, activation='relu', kernel_initializer='random_uniform')(a)
-        c = Dropout(0.5)(b)
-        d = Dense(64, activation='relu', kernel_initializer='random_uniform')(c)
-        e = Dropout(0.5)(d)
-        f = Dense(32, activation='relu', kernel_initializer='random_uniform')(e)
-        g = Dropout(0.5)(f)
-        h = Dense(16, activation='relu', kernel_initializer='random_uniform')(g)
-        j = Dropout(0.5)(h)
-        o = Dense(1)(j)
+        i = Input(shape=(self.n_features,))
+        h1 = Dense(128, activation='relu', kernel_initializer='random_uniform')(i)
+        a1 = Activation('relu')(h1)
+        h2 = Dense(64, activation='relu', kernel_initializer='random_uniform')(a1)
+        a2 = Activation('relu')(h2)
+        h3 = Dense(32, activation='relu', kernel_initializer='random_uniform')(a2)
+        a4 = Activation('relu')(h3)
+        h4 = Dense(16, activation='relu', kernel_initializer='random_uniform')(a4)
+        o = Dense(1)(h4)
 
-        self.eval_model = Model(inputs=a, outputs=o)
-        self.target_model = Model(inputs=a, outputs=o)
+        self.eval_model = Model(inputs=i, outputs=o)
+        self.target_model = Model(inputs=i, outputs=o)
         self.eval_model.compile(loss='mse', optimizer=sgd(lr=self.lr), metrics=['mse', 'accuracy'])
 
     def learn(self, s, td):

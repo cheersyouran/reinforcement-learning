@@ -8,7 +8,7 @@ env = gym.make('DemonAttack-ram-v0')
 n_features = env.observation_space.shape[0]
 n_actions = env.action_space.n
 max_episode = 99999
-random_episodes = 100
+random_episodes = 20
 memory_size = 50000
 actor = Actor(n_features=n_features, lr=0.01, n_actions=n_actions)
 critic = Critic(n_features=n_features, lr=0.01)
@@ -38,9 +38,9 @@ for e in range(1, max_episode):
         epo_steps += 1
 
         if e > random_episodes:
-            states, actions, rewards, states_ = memory.sample(backward_length=16, gamma=0.98)
+            states, actions, rewards, states_ = memory.sample(backward_length=16, gamma=1)
             for s in range(32):
-                state, action, reward, state_ = memory.sample(backward_length=16, gamma=0.98)
+                state, action, reward, state_ = memory.sample(backward_length=16, gamma=1)
                 states = np.vstack((states, state))
                 actions = np.vstack((actions, action))
                 rewards = np.vstack((rewards, reward))
