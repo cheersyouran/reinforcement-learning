@@ -8,9 +8,9 @@ env = gym.make('DemonAttack-ram-v0')
 n_features = env.observation_space.shape[0]
 n_actions = env.action_space.n
 max_episode = 99999
-random_episodes = 50
+random_episodes = 100
 memory_size = 50000
-actor = Actor(n_features=n_features, lr=0.001, n_actions=n_actions)
+actor = Actor(n_features=n_features, lr=0.01, n_actions=n_actions)
 critic = Critic(n_features=n_features, lr=0.01)
 memory = Memory(memory_size, 2 * n_features + 2 + 1, n_features)
 

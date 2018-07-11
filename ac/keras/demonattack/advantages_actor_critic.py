@@ -44,7 +44,7 @@ class Actor:
         s = s[np.newaxis, :]
         actions = self.eval_model.predict(s)
         if (actions.flatten() > 0.5).any():
-            print('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$')
+            s
         choice = np.random.choice(self.n_actions, p=actions.flatten())
         return choice
 
@@ -107,7 +107,8 @@ class Memory:
         self.pointer += 1
 
     def sample(self, backward_length, gamma):
-        indices = np.random.choice(self.pointer % self.capacity)
+        count = self.pointer if self.pointer < self.capacity else self.capacity
+        indices = np.random.choice(count)
         states = []
         rewards = [0]
         states_ = []
