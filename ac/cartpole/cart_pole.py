@@ -1,16 +1,15 @@
 import gym
-import tensorflow as tf
 from keras.utils import to_categorical
-from ac.tensorflow.advantages_actor_critic import Actor, Critic
 
-env = gym.make('CartPole-v0')
+from ac.cartpole.advantages_actor_critic import Actor, Critic
+
+env = gym.make('CartPole-v1')
 
 n_freatures = env.observation_space.shape[0]
 n_actions = env.action_space.n
 max_episode = 99999
-sess = tf.Session()
 
-actor = Actor(n_features=n_freatures, lr=0.005, n_actions=n_actions, sess=sess)
+actor = Actor(n_features=n_freatures, lr=0.005, n_actions=n_actions)
 critic = Critic(n_features=n_freatures, lr=0.005)
 
 for e in range(max_episode):
@@ -25,7 +24,7 @@ for e in range(max_episode):
         if done:
             r = -10 # 关于done时r的设计，参见下面注释。
         total_reward += r
-        td = r + 0.9 * critic.eval(obs_)
+        td = r + 0.95 * critic.eval(obs_)
         '''
         更新actor时
           若td_error恒>=0，则所有更新会增加pi_(s,a)的选择概率，只是不同的a增加的幅度不同;
@@ -38,7 +37,7 @@ for e in range(max_episode):
         else:
             neg += 1
 
-        actor.learn(obs,  to_categorical(a, num_classes=2) * (td - critic.eval(obs)))
+        actor.learn(obs,  to_categorical(a, num_classes=n_actions) * (td - critic.eval(obs)))
         critic.learn(obs, td)
         obs = obs_
         if done:

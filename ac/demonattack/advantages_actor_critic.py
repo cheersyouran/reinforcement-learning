@@ -1,6 +1,7 @@
 from keras.models import Model
 from keras.layers import Input, Dense, Dropout, Activation
-from keras.optimizers import sgd
+from keras import optimizers, regularizers
+from keras.models import Sequential, load_model
 import numpy as np
 import pandas as pd
 
@@ -10,26 +11,39 @@ Actor Critic中的A2C算法，引入Advantages函数
 '''
 
 class Actor:
-    def __init__(self, n_features, n_actions, lr):
+    def __init__(self, n_features, n_actions, lr, load=False):
         self.n_features = n_features
         self.n_actions = n_actions
         self.lr = lr
         self.update_steps = 500
         self.step_counter = 1
 
-        i = Input(shape=(self.n_features,))
-        h1 = Dense(128, activation='relu', kernel_initializer='random_uniform')(i)
-        a1 = Activation('relu')(h1)
-        h2 = Dense(64, activation='relu', kernel_initializer='random_uniform')(a1)
-        a2 = Activation('relu')(h2)
-        h3 = Dense(32, activation='relu', kernel_initializer='random_uniform')(a2)
-        a4 = Activation('relu')(h3)
-        h4 = Dense(16, activation='relu', kernel_initializer='random_uniform')(a4)
-        o = Dense(self.n_actions, activation='softmax', kernel_initializer='random_uniform')(h4)
+        if load:
+            self.eval_model = load_model('./models/actor.m')
+            self.target_model = load_model('./models/actor.m')
+        else:
+            self.eval_model = self.build_model()
+            self.target_model = self.build_model()
+        sgd = optimizers.SGD(lr=self.lr, decay=1e-7, momentum=0.9, nesterov=True)
+        self.eval_model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['mse', 'accuracy'])
 
-        self.eval_model = Model(inputs=i, outputs=o)
-        self.target_model = Model(inputs=i, outputs=o)
-        self.eval_model.compile(loss='categorical_crossentropy', optimizer=sgd(lr=self.lr), metrics=['mse', 'accuracy'])
+    def build_model(self):
+        model = Sequential()
+        model.add(Dense(128, activation='relu', input_dim=self.n_features, kernel_initializer='random_uniform', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dropout(0.3))
+        model.add(Dense(64, activation='relu', kernel_initializer='random_uniform', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dropout(0.3))
+        model.add(Dense(64, activation='relu', kernel_initializer='random_uniform', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dropout(0.3))
+        model.add(Dense(64, activation='relu', kernel_initializer='random_uniform', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dropout(0.3))
+        model.add(Dense(16, activation='relu', kernel_initializer='random_uniform', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dropout(0.3))
+        model.add(Dense(self.n_actions, activation='softmax', kernel_initializer='random_uniform'))
+        return model
+
+    def save_model(self):
+        self.eval_model.save('./models/actor.m')
 
     def learn(self, s, q):
         self.eval_model.train_on_batch(s, q)
@@ -58,25 +72,35 @@ class Actor:
         return choice
 
 class Critic:
-    def __init__(self, n_features, lr):
+    def __init__(self, n_features, lr, load=False):
         self.n_features = n_features
         self.lr = lr
         self.update_steps = 500
         self.step_counter = 1
 
-        i = Input(shape=(self.n_features,))
-        h1 = Dense(128, activation='relu', kernel_initializer='random_uniform')(i)
-        a1 = Activation('relu')(h1)
-        h2 = Dense(64, activation='relu', kernel_initializer='random_uniform')(a1)
-        a2 = Activation('relu')(h2)
-        h3 = Dense(32, activation='relu', kernel_initializer='random_uniform')(a2)
-        a4 = Activation('relu')(h3)
-        h4 = Dense(16, activation='relu', kernel_initializer='random_uniform')(a4)
-        o = Dense(1)(h4)
+        if load:
+            self.eval_model = load_model('./models/critic.m')
+            self.target_model = load_model('./models/critic.m')
+        else:
+            self.eval_model = self.build_model()
+            self.target_model = self.build_model()
+            sgd = optimizers.SGD(lr=self.lr, decay=1e-7, momentum=0.9, nesterov=True)
+            self.eval_model.compile(loss='mse', optimizer=sgd, metrics=['mse', 'accuracy'])
 
-        self.eval_model = Model(inputs=i, outputs=o)
-        self.target_model = Model(inputs=i, outputs=o)
-        self.eval_model.compile(loss='mse', optimizer=sgd(lr=self.lr), metrics=['mse', 'accuracy'])
+    def build_model(self):
+        model = Sequential()
+        model.add(Dense(128, activation='relu', input_dim=self.n_features, kernel_initializer='random_uniform', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dropout(0.3))
+        model.add(Dense(64, activation='relu', kernel_initializer='random_uniform', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dropout(0.3))
+        model.add(Dense(64, activation='relu', kernel_initializer='random_uniform', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dropout(0.3))
+        model.add(Dense(64, activation='relu', kernel_initializer='random_uniform', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dropout(0.3))
+        model.add(Dense(16, activation='relu', kernel_initializer='random_uniform', kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dropout(0.3))
+        model.add(Dense(1))
+        return model
 
     def learn(self, s, td):
         self.eval_model.train_on_batch(s, td)
@@ -85,6 +109,9 @@ class Critic:
             self.step_counter = 1
         else:
             self.step_counter += 1
+
+    def save_model(self):
+        self.eval_model.save('./models/critic.m')
 
     def eval_predit(self, s):
         return self.eval_model.predict(s)
